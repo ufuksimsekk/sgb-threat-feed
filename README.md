@@ -23,28 +23,10 @@ IPv6, domain ve URL kayıtları bu feed'in kapsamı dışındadır. Bu türler,
 FortiGate üzerinde ayrı external resource ve ilgili DNS/Web Filter
 politikalarıyla yönetilmelidir.
 
-## Otomasyon
-
-Workflow: [`.github/workflows/update.yml`](.github/workflows/update.yml)
-
-GitHub Actions workflow'u saatte bir ve manuel tetikleme ile çalışır. Her
-çalışmada testler yürütülür, güncel liste üretilir ve yalnızca
-`feeds/ip.txt` değişmişse `Update feeds` commit'i oluşturulur.
-
-Repository ayarlarında workflow'un listeyi commit edebilmesi için aşağıdaki
-izin gereklidir:
-
-```text
-Settings → Actions → General → Workflow permissions → Read and write permissions
-```
-
-Zamanlanmış GitHub Actions işleri UTC zaman diliminde çalışır. İş akışının
-çalışma durumu ve son feed güncellemesi **Actions** sekmesinden izlenebilir.
-
 ## FortiGate External Resource
 
-FortiGate'in GitHub üzerinden feed'i okuyabilmesi için repository public
-olmalıdır. FortiOS 7.2.13 için IPv4 external resource tanımı:
+Repository public erişime açıktır. FortiGate 100F üzerinde FortiOS 7.2.13
+için IPv4 external resource yapılandırması:
 
 ```cli
 config system external-resource
