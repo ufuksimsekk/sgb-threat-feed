@@ -1,33 +1,56 @@
-# SGB → FortiGate Threat Feed
+# SGB FortiGate Threat Feed
 
-Bu repository, Türkiye Siber Güvenlik Başkanlığı API'sinden IP göstergelerini
-çeker ve FortiGate'in *External Resource* olarak okuyabileceği yalın metin
-listesini `feeds/ip.txt` içinde yayımlar. SGB'nin 1–10 arasındaki tüm
-kritiklik seviyeleri alınır. Her satırda tek bir IPv4 adresi bulunur;
-tekrarlar ve geçersiz değerler çıkarılır.
+Siber Güvenlik Başkanlığı tarafından yayımlanan zararlı IPv4 göstergelerini
+FortiGate External Resource biçiminde sunan otomatik threat-feed projesi.
 
-GitHub Actions bu listeyi saatte bir üretir ve yalnızca `feeds/ip.txt`
-değiştiğinde commit eder. GitHub Actions zamanlamaları UTC'dir ve yoğun
-dönemlerde gecikebilir; FortiGate tarafında daha sık yenileme ayarlamak yeni
-veri yaratmaz.
+## Feed
 
-## FortiGate 100F / FortiOS 7.2.13 kurulumu
+Yayımlanan liste:
 
-Repository'nin **public** olması gerekir; FortiGate, GitHub kimlik doğrulaması
-yapmadan ham dosyayı indirir. Aşağıdaki URL'de `OWNER` ve `REPOSITORY`
-değerlerini kendi GitHub bilgilerinle değiştir:
-
-```
-https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/refs/heads/main/feeds/ip.txt
+```text
+https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/main/feeds/ip.txt
 ```
 
-FortiGate CLI'da bir external resource oluştur:
+Kaynak dosya düz metindir; her satır tek bir IPv4 adresi içerir. Feed üretimi:
 
+- SGB API'deki `ip` türündeki kayıtları alır.
+- Kritik seviye 1–10 arasındaki tüm göstergeleri kapsar.
+- Geçersiz değerleri ve yinelenen IPv4 adreslerini çıkarır.
+- Başarısız veya boş API yanıtında mevcut feed'i değiştirmez.
+- Çıktıyı sayısal IP sırasıyla ve satır sonu ile yazar.
+
+IPv6, domain ve URL kayıtları bu feed'in kapsamı dışındadır. Bu türler,
+FortiGate üzerinde ayrı external resource ve ilgili DNS/Web Filter
+politikalarıyla yönetilmelidir.
+
+## Otomasyon
+
+Workflow: [`.github/workflows/update.yml`](.github/workflows/update.yml)
+
+GitHub Actions workflow'u saatte bir ve manuel tetikleme ile çalışır. Her
+çalışmada testler yürütülür, güncel liste üretilir ve yalnızca
+`feeds/ip.txt` değişmişse `Update feeds` commit'i oluşturulur.
+
+Repository ayarlarında workflow'un listeyi commit edebilmesi için aşağıdaki
+izin gereklidir:
+
+```text
+Settings → Actions → General → Workflow permissions → Read and write permissions
 ```
+
+Zamanlanmış GitHub Actions işleri UTC zaman diliminde çalışır. İş akışının
+çalışma durumu ve son feed güncellemesi **Actions** sekmesinden izlenebilir.
+
+## FortiGate External Resource
+
+FortiGate'in GitHub üzerinden feed'i okuyabilmesi için repository public
+olmalıdır. FortiOS 7.2.13 için IPv4 external resource tanımı:
+
+```cli
 config system external-resource
     edit "SGB-Threat-IPs"
         set type address
-        set resource "https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/refs/heads/main/feeds/ip.txt"
+        set resource "https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/main/feeds/ip.txt"
         set refresh-rate 60
         set status enable
         set comments "SGB API-generated IPv4 threat feed"
@@ -35,10 +58,10 @@ config system external-resource
 end
 ```
 
-Ardından bu nesneyi engelleme politikasında **destination address** olarak
-kullan. İç ağdan internete çıkışı engellemek için örnek politika:
+`SGB-Threat-IPs` nesnesi, örneğin LAN'dan internete giden trafiği koruyan
+engelleme politikasında destination address olarak kullanılır:
 
-```
+```cli
 config firewall policy
     edit 0
         set name "Block-SGB-Threat-IPs"
@@ -54,18 +77,24 @@ config firewall policy
 end
 ```
 
-Bu kuralı genel internet erişimine izin veren policy'nin **üstüne** koy.
-Üretim öncesi önce sınırlı bir test istemcisiyle doğrulamak iyi olur. External
-resource, HTTP/HTTPS üzerinden satır başına bir IP olacak biçimde dinamik
-listeler alır; FortiOS'ta maksimum kaynak boyutu 10 MB veya 131.072 girdidir.
+Engelleme policy'si, aynı trafiğe izin veren genel internet erişim
+policy'lerinden önce konumlandırılmalıdır. FortiGate'in GitHub'a HTTPS
+erişimi olmalıdır. FortiOS external resource listelerinde kaynak boyutu
+10 MB veya 131.072 giriş ile sınırlıdır.
 
-## Yerelde çalıştırma
+## Yerel geliştirme
 
-```
+```powershell
 python -m pip install -r requirements.txt
-python scripts/generate_feed.py
 python -m unittest discover -s tests
+python scripts/generate_feed.py
 ```
 
-`scripts/main.py` önceki deneme betiğidir; otomasyon yalnızca
-`scripts/generate_feed.py` kullanır.
+## Repository yapısı
+
+| Yol | Açıklama |
+| --- | --- |
+| `scripts/generate_feed.py` | SGB API istemcisi ve feed üreticisi |
+| `feeds/ip.txt` | FortiGate tarafından indirilen yayımlanmış IPv4 listesi |
+| `tests/test_generate_feed.py` | Feed doğrulama ve çıktı biçimi testleri |
+| `.github/workflows/update.yml` | Saatlik GitHub Actions güncellemesi |
