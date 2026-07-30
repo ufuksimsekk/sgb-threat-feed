@@ -27,6 +27,8 @@ jobs:
 
     - run: pip install -r requirements.txt
 
+    - run: python -m unittest discover -s tests
+
     - run: python scripts/generate_feed.py
 
     - name: Commit
@@ -37,7 +39,7 @@ jobs:
 
         git config user.email github-actions@github.com
 
-        git add .
+        git add feeds/ip.txt
 
         git diff --cached --quiet || git commit -m "Update feeds"
 
