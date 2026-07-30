@@ -11,7 +11,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 BASE_URL = "https://siberguvenlik.gov.tr/api/address/index"
-CRITICALITY_LEVELS = (1, 2, 3, 4)
+# SGB rates indicators from 1 (lowest) to 10 (highest) criticality.
+CRITICALITY_LEVELS = tuple(range(1, 11))
 PER_PAGE = 500
 MAX_PAGES_PER_LEVEL = 1_000
 OUTPUT_PATH = Path(__file__).resolve().parents[1] / "feeds" / "ip.txt"

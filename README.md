@@ -2,8 +2,9 @@
 
 Bu repository, Türkiye Siber Güvenlik Başkanlığı API'sinden IP göstergelerini
 çeker ve FortiGate'in *External Resource* olarak okuyabileceği yalın metin
-listesini `feeds/ip.txt` içinde yayımlar. Her satırda tek bir IPv4 adresi
-bulunur; tekrarlar ve geçersiz değerler çıkarılır.
+listesini `feeds/ip.txt` içinde yayımlar. SGB'nin 1–10 arasındaki tüm
+kritiklik seviyeleri alınır. Her satırda tek bir IPv4 adresi bulunur;
+tekrarlar ve geçersiz değerler çıkarılır.
 
 GitHub Actions bu listeyi saatte bir üretir ve yalnızca `feeds/ip.txt`
 değiştiğinde commit eder. GitHub Actions zamanlamaları UTC'dir ve yoğun
