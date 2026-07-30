@@ -17,7 +17,7 @@ yapmadan ham dosyayı indirir. Aşağıdaki URL'de `OWNER` ve `REPOSITORY`
 değerlerini kendi GitHub bilgilerinle değiştir:
 
 ```
-(https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/main/feeds/ip.txt)
+https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/refs/heads/main/feeds/ip.txt
 ```
 
 FortiGate CLI'da bir external resource oluştur:
@@ -26,7 +26,7 @@ FortiGate CLI'da bir external resource oluştur:
 config system external-resource
     edit "SGB-Threat-IPs"
         set type address
-        set resource (https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/main/feeds/ip.txt)"
+        set resource "https://raw.githubusercontent.com/ufuksimsekk/sgb-threat-feed/refs/heads/main/feeds/ip.txt"
         set refresh-rate 60
         set status enable
         set comments "SGB API-generated IPv4 threat feed"
