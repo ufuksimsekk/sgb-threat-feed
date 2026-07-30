@@ -1,20 +1,44 @@
 import requests
 
-API_URL = "https://siberguvenlik.gov.tr/api"
+BASE_URL = "https://siberguvenlik.gov.tr/api"
 
-params = {
-    "type": "ip",
-    "per-page": 9999,
-    "criticality_level": 4
-}
+all_ips = []
 
-response = requests.get(API_URL, params=params, timeout=60)
-response.raise_for_status()
+page = 0
 
-data = response.json()
+while True:
 
-with open("feeds/ip.txt", "w", encoding="utf-8") as f:
-    for item in data["models"]:
-        f.write(item["url"] + "\n")
+    params = {
+        "type": "ip",
+        "page": page,
+        "per-page": 9999
+    }
 
-print(f"{len(data['models'])} IP adresi oluşturuldu.")
+    r = requests.get(BASE_URL, params=params, timeout=60)
+    r.raise_for_status()
+
+    data = r.json()
+
+    models = data.get("models", [])
+
+    if len(models) == 0:
+        break
+
+    for item in models:
+
+        ip = item.get("url")
+
+        if ip:
+            all_ips.append(ip)
+
+    print(f"Page {page} : {len(models)} kayıt")
+
+    page += 1
+
+with open("feeds/ip.txt","w") as f:
+
+    for ip in sorted(set(all_ips)):
+
+        f.write(ip + "\n")
+
+print(f"Toplam {len(all_ips)} IP")
